@@ -11,14 +11,15 @@ jobs:
   playwright-tests:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         shard: [1, 2] # Two shards for splitting the tests
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '20'
     - name: Install dependencies
@@ -41,7 +42,7 @@ jobs:
     steps:
       # Step 1: Checkout code again (required to access scripts like 'combine-reports.js')
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Step 2: Download test results from both shards
       - name: Download test results for shard 1
