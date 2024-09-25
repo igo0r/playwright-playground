@@ -6,11 +6,13 @@ on:
       - main
   pull_request:
     branches:
-      - main
-
+      - github-actions-combined-report
 jobs:
-  test:
+  playwright-tests:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shard: [1, 2] # Two shards for splitting the tests
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -23,11 +25,45 @@ jobs:
       run: npm install
     - name: Install playwright
       run: npx playwright install --with-deps
-    - name: Run Playwright tests
-      run: npx playwright test
-    - uses: actions/upload-artifact@v4
+    - name: Run Playwright Test Shard ${{ matrix.shard }}
+      run: npx playwright test --shard=${{ matrix.shard }}/2
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
-        name: playwright-report
-        path: playwright-report/
+        name: test-results-${{ matrix.shard }}
+        path: results/test-results-${{ matrix.shard }}.json
         retention-days: 30
+# Combine reports after both shards have completed
+  combine-reports:
+    needs: playwright-tests # Ensure this job runs after the 'playwright-tests' job completes
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout code again (required to access scripts like 'combine-reports.js')
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Download test results from both shards
+      - name: Download test results for shard 1
+        uses: actions/download-artifact@v2
+        with:
+          name: test-results-1
+          path: results
+
+      - name: Download test results for shard 2
+        uses: actions/download-artifact@v2
+        with:
+          name: test-results-2
+          path: results
+
+      # Step 3: Combine test results using the custom Node.js script
+      - name: Combine test results
+        run: |
+          node combine-reports.js
+
+      # Step 4: Upload the combined test report
+      - name: Upload combined report
+        uses: actions/upload-artifact@v2
+        with:
+          name: combined-report
+          path: results/combined-report.json
