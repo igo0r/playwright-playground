@@ -3,12 +3,10 @@ name: Playwright Tests
 on:
   push:
     branches:
-      - main
-        github-actions-combined-report
+      - github-actions-combined-report
   pull_request:
     branches:
-      = main
-        github-actions-combined-report
+      = github-actions-combined-report
 jobs:
   playwright-tests:
     runs-on: ubuntu-latest
