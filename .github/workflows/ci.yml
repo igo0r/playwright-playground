@@ -31,11 +31,11 @@ jobs:
       uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
-        name: test-results-${{ matrix.shard }}
-        path: results/test-results-${{ matrix.shard }}.json
+        name: blob-report-${{ matrix.shard }}
+        path: blob-report
         retention-days: 30
 # Combine reports after both shards have completed
-  combine-reports:
+  merge-reports:
     needs: playwright-tests # Ensure this job runs after the 'playwright-tests' job completes
     runs-on: ubuntu-latest
     steps:
@@ -45,25 +45,20 @@ jobs:
 
       # Step 2: Download test results from both shards
       - name: Download test results for shard 1
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
-          name: test-results-1
-          path: results
-
-      - name: Download test results for shard 2
-        uses: actions/download-artifact@v2
-        with:
-          name: test-results-2
-          path: results
+          path: all-blob-reports
+          pattern: blob-report-*
+          merge-multiple: true
 
       # Step 3: Combine test results using the custom Node.js script
-      - name: Combine test results
-        run: |
-          node combine-reports.js
+      - name: Merge into HTML Report
+        run: npx playwright merge-reports --reporter html ./all-blob-reports
 
-      # Step 4: Upload the combined test report
-      - name: Upload combined report
-        uses: actions/upload-artifact@v2
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v4
         with:
-          name: combined-report
-          path: results/combined-report.json
+          name: html-report--attempt-${{ github.run_attempt }}
+          path: playwright-report
+          retention-days: 30
