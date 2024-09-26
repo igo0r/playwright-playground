@@ -39,6 +39,7 @@ jobs:
   merge-reports:
     needs: playwright-tests # Ensure this job runs after the 'playwright-tests' job completes
     runs-on: ubuntu-latest
+    if: always()
     steps:
       # Step 1: Checkout code again (required to access scripts like 'combine-reports.js')
       - name: Checkout code
