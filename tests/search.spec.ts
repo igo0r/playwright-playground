@@ -15,5 +15,5 @@ test('Search for mouse click test #2', async ({ page }) => {
   await page.locator('#docsearch-input').fill('click');
   await page.locator('.DocSearch-Hit-title').filter({hasText: 'Mouse'}).click();
 
-  await expect(await page.locator('mouse-click')).toBeVisible();
+  await expect(await page.locator('#mouse-click')).toBeVisible();
 });
